@@ -3,9 +3,11 @@ import "./Count.css";
 
 let count = props => {
   return (
-    <h2>
-      {props.name} <span>({props.n})</span>
-    </h2>
+    <React.Fragment>
+      <span class="count">
+        {props.name} <span> ({props.n})</span>
+      </span>
+    </React.Fragment>
   );
 };
 

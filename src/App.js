@@ -7,28 +7,43 @@ class App extends Component {
   state = {
     tableCards: [],
     deck: [],
-    //selectedCards: [],
+    showFoundSets: false,
     foundSets: []
   };
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     let initState = this.initialState(false, 12);
     this.state.deck = initState.deck;
     this.state.tableCards = initState.tableCards;
     this.state.foundSets = initState.foundSets;
   }
 
+  restart = () => {
+    let initState = this.initialState(false, 12);
+    this.setState({ deck: initState.deck });
+    this.setState({ tableCards: initState.tableCards });
+    this.setState({ foundSets: initState.foundSets });
+  };
+
   render() {
     return (
       <React.Fragment>
         <div className="header">
           <img alt="SET GAME" src="./images/logo.jpg" />
-          <Count name="Cards remaining in Deck" n={this.state.deck.length} />
-          <button onClick={this.buttonHandler}>Add 3 more Cards</button>
         </div>
+
         <div className="container">
           <div className="col">
-            <Count name="active cards" n={this.state.tableCards.length} />
+            <h3 class="counters">
+              <span>Deck ({this.state.deck.length})</span>
+
+              <span>Table ({this.state.tableCards.length})</span>
+            </h3>
+            <div>
+              <button className="addCardsButton" onClick={this.buttonHandler}>
+                add 3 more Cards
+              </button>
+            </div>
             <CardGroup
               name="table"
               cards={this.state.tableCards}
@@ -36,7 +51,7 @@ class App extends Component {
             />
           </div>
           <div className="col">
-            <Count name="found sets" n={this.state.foundSets.length} />
+            <h3>Found Sets ({this.state.foundSets.length}) </h3>
             <CardGroup
               name="foundSets"
               cards={this.flattenArray(this.state.foundSets)}
