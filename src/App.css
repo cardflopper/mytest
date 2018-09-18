@@ -11,11 +11,6 @@
   float: left;
 }
 
-.toggleFoundSets {
-  visibility: hidden;
-  display: none;
-}
-
 .addCardsButton {
   border: 1px solid gray;
   color: black;
@@ -41,9 +36,5 @@ h3 {
   /* For mobile phones: */
   [class*="col"] {
     width: 100%;
-  }
-  .toggleFoundSets {
-    visibility: visible;
-    display: unset;
   }
 }

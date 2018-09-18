@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import CardGroup from "./CardGroup";
-import Count from "./Count";
 import "./App.css";
 
 class App extends Component {
