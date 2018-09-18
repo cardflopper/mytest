@@ -7,7 +7,8 @@
 }
 
 .col {
-  width: 50%;
+  border: 0px solid black;
+  width: 100%;
   float: left;
 }
 
@@ -32,9 +33,12 @@ h3 {
   margin: 0 10px;
 }
 
-@media only screen and (max-width: 700px) {
+@media only screen and (min-width: 768px) {
   /* For mobile phones: */
   [class*="col"] {
-    width: 100%;
+    width: 50%;
+  }
+  .container {
+    width: 768px;
   }
 }
