@@ -1,0 +1,11 @@
+/*card styles*/
+
+.highlight {
+  padding: 0px;
+  border: 2px solid blue;
+}
+
+img {
+  margin: 0;
+  padding: 2px;
+}
