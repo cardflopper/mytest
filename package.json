@@ -4,6 +4,7 @@
   "private": true,
   "homepage": "http://cardflopper.github.io/set",
   "dependencies": {
+    "merge": "^1.2.1",
     "react": "^16.4.2",
     "react-dom": "^16.4.2",
     "react-scripts": "1.1.5"
