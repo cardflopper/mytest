@@ -7,7 +7,10 @@ class App extends Component {
     tableCards: [],
     deck: [],
     showFoundSets: false,
-    foundSets: []
+    foundSets: [],
+    availableSets: [],
+    currentRevealedIndex: 0,
+    showHints: false
   };
   constructor(props) {
     super(props);
@@ -15,6 +18,9 @@ class App extends Component {
     this.state.deck = initState.deck;
     this.state.tableCards = initState.tableCards;
     this.state.foundSets = initState.foundSets;
+    this.state.availableSets = initState.availableSets;
+    this.state.currentRevealedIndex = initState.currentRevealedIndex;
+    this.state.showHints = initState.showHints;
   }
 
   restart = () => {
@@ -22,9 +28,26 @@ class App extends Component {
     this.setState({ deck: initState.deck });
     this.setState({ tableCards: initState.tableCards });
     this.setState({ foundSets: initState.foundSets });
+    this.setState({ availableSets: initState.availableSets });
+    this.setState({ currentRevealedIndex: initState.currentRevealedIndex });
+    this.setState({ showHints: initState.showHints });
   };
 
   render() {
+    let add3CardsButton = (
+      <button onClick={this.addCardsButtonHandler}>+3 cards</button>
+    );
+
+    let toggleHintsButton = (
+      <button onClick={this.toggleHintsButtonHandler}>
+        {this.state.showHints ? "hide" : "show"} hints
+      </button>
+    );
+
+    let nextHintButton = (
+      <button onClick={this.nextHintButtonHandler}>next</button>
+    );
+
     return (
       <React.Fragment>
         <div className="header">
@@ -35,13 +58,15 @@ class App extends Component {
           <div className="col">
             <h3 class="counters">
               <span>Deck ({this.state.deck.length})</span>
-
               <span>Table ({this.state.tableCards.length})</span>
+              <span>Sets ({this.state.availableSets.length})</span>
             </h3>
-            <div>
-              <button className="addCardsButton" onClick={this.buttonHandler}>
-                add 3 more Cards
-              </button>
+            <div class="topRow">
+              {this.state.deck.length > 0 ? add3CardsButton : null}
+              {this.state.availableSets.length > 0 ? toggleHintsButton : null}
+              {this.state.availableSets.length > 1 && this.state.showHints
+                ? nextHintButton
+                : null}
             </div>
             <CardGroup
               name="table"
@@ -62,13 +87,6 @@ class App extends Component {
     );
   }
 
-  setIsNew(set) {
-    if (this.state.foundSets.length === 0) return true;
-    for (let fs of this.state.foundSets)
-      if (fs.filter(i => set.indexOf(i) === -1).length === 0) return false;
-    return true;
-  }
-
   flattenArray(a) {
     if (a.length === 0) return [];
     let result = [];
@@ -76,11 +94,87 @@ class App extends Component {
     return result;
   }
 
-  buttonHandler = () => {
-    let { drawn, deck } = this.drawCards();
+  toggleHintsButtonHandler = () => {
+    let tc = this.state.tableCards.slice();
+    let set = this.state.currentRevealedIndex;
+    let showHints = !this.state.showHints;
+    tc.map(card => {
+      card.isSelected = false;
+      card.isRevealed = false;
+    });
+    if (showHints)
+      this.state.availableSets[set].map(tableIndex => {
+        tc[tableIndex].isRevealed = true;
+      });
+
+    this.setState({ tableCards: tc, showHints });
+  };
+
+  nextHintButtonHandler = () => {
+    let set =
+      (this.state.currentRevealedIndex + 1) % this.state.availableSets.length;
+
+    let tc = this.state.tableCards.slice();
+
+    tc.map(card => {
+      card.isSelected = false;
+      card.isRevealed = false;
+    });
+    if (this.state.showHints === true)
+      this.state.availableSets[set].map(tableIndex => {
+        tc[tableIndex].isRevealed = true;
+      });
+
     this.setState({
-      tableCards: this.state.tableCards.slice().concat(drawn),
-      deck: deck
+      currentRevealedIndex: set,
+      tableCards: tc
+    });
+  };
+
+  findPossibleSets = tableCards => {
+    let tc = tableCards;
+    let n = tc.length;
+    let sets = [];
+    start: for (let i = 0; i < n - 2; i++) {
+      for (let j = i + 1; j < n - 1; j++) {
+        for (let k = j + 1; k < n; k++) {
+          let result = this.checkIfSet([tc[i].id, tc[j].id, tc[k].id]);
+          if (result === true) sets.push([i, j, k]);
+        }
+      }
+    }
+    return sets;
+  };
+
+  countPossibleSets = tableCards => {
+    let tc = tableCards;
+    let n = tc.length;
+    let count = 0;
+    start: for (let i = 0; i < n - 2; i++) {
+      for (let j = i + 1; j < n - 1; j++) {
+        for (let k = j + 1; k < n; k++) {
+          let result = this.checkIfSet([tc[i].id, tc[j].id, tc[k].id]);
+          if (result === true) count++;
+        }
+      }
+    }
+    return count;
+  };
+
+  addCardsButtonHandler = () => {
+    let { drawn, deck } = this.drawCards();
+    let tableCards = this.state.tableCards.slice().concat(drawn);
+    tableCards.map(i => {
+      i.isRevealed = false;
+    });
+    let availableSets = this.findPossibleSets(tableCards);
+    let currentRevealedIndex = availableSets.length > 0 ? 0 : -1;
+    this.setState({
+      tableCards,
+      deck,
+      availableSets,
+      currentRevealedIndex,
+      showHints: false
     });
   };
 
@@ -90,9 +184,11 @@ class App extends Component {
       tableCards = this.state.tableCards.slice(),
       foundSets = this.state.foundSets.slice(),
       deck = this.state.deck,
+      availableSets = this.state.availableSets,
+      currentRevealedIndex = this.state.currentRevealedIndex,
+      showHints = this.state.showHints,
       drawn = [];
 
-    //these two lines must be in this order
     tableCards[i].isSelected = !tableCards[i].isSelected; //toggle isSelected at current index
 
     let numSelected = 0;
@@ -104,11 +200,11 @@ class App extends Component {
 
       console.log(set);
 
-      if (this.checkIfSet(set) && this.setIsNew(set)) {
+      if (this.checkIfSet(set)) {
         //we need cards to be in {id,selected} format to display properly in CardGroup component
         foundSets.push(
           set.map(i => {
-            return { id: i, isSelected: null };
+            return { id: i, isSelected: null, isRevealed: null };
           })
         );
 
@@ -119,22 +215,33 @@ class App extends Component {
           console.log("need a fill!");
           ({ drawn, deck } = this.drawCards(Math.abs(12 - tableCards.length)));
         }
+        numSelected = 0;
+        tableCards = tableCards.concat(drawn);
+        tableCards.map(c => {
+          c.isRevealed = false;
+        });
+        currentRevealedIndex = availableSets.length > 0 ? 0 : -1;
+        availableSets = this.findPossibleSets(tableCards);
+        showHints = false;
       }
-      //called regardless of whether the triplet was a set or not
-      numSelected = 0;
-      tableCards.map(c => (c.isSelected = false));
+
+      //if 3 cards were selected but no set was found
+      tableCards.map(c => {
+        c.isSelected = false;
+      });
     }
 
-    let newState = {
-      tableCards: tableCards.concat(drawn),
-      foundSets: foundSets,
-      deck: deck
-    };
-
-    this.setState(newState);
+    this.setState({
+      tableCards,
+      foundSets,
+      deck,
+      availableSets,
+      currentRevealedIndex,
+      showHints
+    });
   };
 
-  initialState(test = false, draw = 3) {
+  initialState = (test = false, draw = 3) => {
     let deck = [];
     for (let i = 0; i < 81; i++) {
       deck.push(i);
@@ -143,16 +250,21 @@ class App extends Component {
     if (!test) deck = this.shuffle(deck);
 
     let tableCards = deck.splice(0, draw);
-
+    tableCards = tableCards.map(i => {
+      return { id: i, isSelected: false, isRevealed: false };
+    });
+    let availableSets = this.findPossibleSets(tableCards);
+    let currentRevealedIndex = availableSets.length > 0 ? 0 : -1;
     return {
       deck: deck,
-      tableCards: tableCards.map(i => {
-        return { id: i, isSelected: false };
-      }),
+      tableCards,
       selectedCards: [],
-      foundSets: []
+      foundSets: [],
+      availableSets,
+      currentRevealedIndex,
+      showHints: false
     };
-  }
+  };
 
   drawCards(n = 3) {
     if (this.state.deck.length === 0 || n === 0)
@@ -161,7 +273,7 @@ class App extends Component {
 
     let deck = this.state.deck.slice();
     let drawn = deck.splice(0, n).map(i => {
-      return { id: i, isSelected: false };
+      return { id: i, isSelected: false, isRevealed: false };
     });
 
     return { drawn: drawn, deck: deck };
@@ -178,11 +290,11 @@ class App extends Component {
     let number = new Set([a.number, b.number, c.number]);
     let shape = new Set([a.shape, b.shape, c.shape]);
 
-    if (color.size === 2) return 0;
-    if (fill.size === 2) return 0;
-    if (number.size === 2) return 0;
-    if (shape.size === 2) return 0;
-    return 1;
+    if (color.size === 2) return false;
+    if (fill.size === 2) return false;
+    if (number.size === 2) return false;
+    if (shape.size === 2) return false;
+    return true;
   };
 
   getQualities(id) {

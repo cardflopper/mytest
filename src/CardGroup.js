@@ -21,6 +21,7 @@ const cardGroup = props => {
                     key={colElement.id}
                     id={colElement.id}
                     selected={colElement.isSelected}
+                    revealed={colElement.isRevealed}
                     cardClick={e => props.cardClick(e, r, c)}
                   />
                 </td>

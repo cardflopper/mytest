@@ -3,9 +3,12 @@ import "./Card.css";
 
 let card = props => {
   let src = `./images/${props.id}.jpg`;
-  let classes = null;
+  let classes = "";
   if (props.selected) {
-    classes = "highlight";
+    classes += "highlight ";
+  }
+  if (props.revealed) {
+    classes += " revealed";
   }
 
   return (
